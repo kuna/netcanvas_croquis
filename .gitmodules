@@ -1,0 +1,3 @@
+[submodule "croquis.js"]
+	path = croquis.js
+	url = https://github.com/kuna/croquis.js
