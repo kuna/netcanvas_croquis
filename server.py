@@ -80,6 +80,7 @@ def main():
 		(r'/', IndexHandler),
 		(r'/ws', SocketHandler),
 		(r'/(croquis.js)', web.StaticFileHandler, {'path': './'}),
+		(r'/(croquis.mobile.js)', web.StaticFileHandler, {'path': './'}),
 		(r'/(netcanvas.js)', web.StaticFileHandler, {'path': './'}),
 #		(r'/(favicon.ico)', web.StaticFileHandler, {'path': '../'}),
 #		(r'/(rest_api_example.png)', web.StaticFileHandler, {'path': './'}),
