@@ -1,0 +1,25 @@
+<html>
+	<head>
+		<title>croquis for mobile/netcanvas test</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, width=device-width" />
+		<script src="./croquis.js"></script>
+		<script src="./croquis.mobile.js"></script>
+		<script src="./netcanvas.js"></script>
+		<script>
+			window.onload = function () {
+				var croquis = new Croquis();
+				croquis.setCanvasSize(600, 480);
+				croquis.addLayer();
+				//croquis.fillLayer('#abc');
+
+				Croquis.addToElement(croquis, document.body);
+
+				netcanvas = new NetCanvas("ws://localhost:8800/ws", croquis);
+				//netcanvas = new NetCanvas("ws://192.168.0.32:8800/ws", croquis);
+			}
+		</script>
+	</head>
+	<body>
+	</body>
+</html>
