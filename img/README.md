@@ -1,0 +1,1 @@
+All icons from: softicons.com, iconarchive.com, simpleicon.com. All rights reserved.
