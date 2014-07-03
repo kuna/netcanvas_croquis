@@ -2,7 +2,7 @@
  * netcanvas for croquis
  * by @lazykuna
  * for modified ver of croquis (need overlaylayer - croquis.overlay.js)
- * prototype: onNick, onChat, onMessage, onJoin, onQuit, onError, onClose, onOpen, onEnter
+ * prototype: onNick, onChat, onMessage, onJoin, onQuit, onError, onClose, onOpen
  */
 
 
@@ -62,7 +62,6 @@ var NetCanvas = function(url, croquis, prototype) {
 		// data should be consisted of [cmd], [data]
 		if (!self.isconnected) {
 			console.log("attempt to send data while its not connected");
-			console.log(data);
 			return;
 		}
 		self.wSocket.send(JSON.stringify(data));
@@ -114,10 +113,9 @@ var NetCanvas = function(url, croquis, prototype) {
 			if (self.onQuit)
 				self.onQuit(nick);
 		} else if (obj["cmd"] == "ENTER") {
-			console.log("joined!");
-			console.log(obj);
+			self.croquis.setCanvasSize(obj["width"], obj["height"]);
 			if (self.onEnter)
-				self.onEnter(obj["roomname"], obj["width"], obj["height"]);
+				self.onEnter();
 		}
 	};
 

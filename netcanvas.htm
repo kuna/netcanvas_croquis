@@ -72,6 +72,9 @@
 			#layerlist li .thumbnail { display: inline-block; vertical-align: middle; width:40px; height:40px; }
 			#layerlist li .remove { float:right; font-weight:bold; color:red; }
 			#layerlist li.selected { font-weight:bold; }
+
+
+			#reconnect { opacity:0.6; background-color: #000; border-radius: 10px; height:80px; width:300px; padding:30px 20px; text-align: center; position:absolute; z-index:9999; color:#fff; }
 		</style>
 
 		<script>
@@ -264,6 +267,9 @@
 
 					// navbar replace
 					$("#navbar").css({right:margin.w/2, top:margin.h/2});
+
+
+					$("#reconnect").css({left:wWidth/2-$("#reconnect").width()/2, top:wHeight/2-$("#reconnect").height()/2});
 				}
 
 				$(window).resize(function() {
@@ -300,10 +306,10 @@
 						}
 					});
 					$("#chatenter").click(function() {
-						var txt = $("#chatinput").val();
+						var txt = $("#chatinput").value;
 						if (txt != "")
 							enterChat(txt);
-						$("#chatinput").val("");
+						$("#chatinput").value = "";
 					});
 					$("#chatnickchange").click(function() {
 						var nick = prompt("enter new nickname");
@@ -318,8 +324,7 @@
 						addChat(nick, msg);
 					}
 					netcanvas.onMessage = function (msg) {
-						//addChat("Server", msg, true);
-						alert(msg);
+						addChat("Server", msg, true);
 					}
 					netcanvas.onJoin = function (id) {
 						addTextarea(id + " had entered.");
@@ -328,107 +333,49 @@
 						addTextarea(id + " set nickname " + nick);
 					}
 					netcanvas.onQuit = function (nick) {
-						addChat("Server", nick + " had exit.", true);
+						addChat("Server", nick + " quit the room.", true);
 					}
-					netcanvas.onClose = function (nick) {
-						showJoinRoom();
-						showDisconnected();
-					}
-					netcanvas.onOpen = function (nick) {
-						hideDisconnected();
-					}
-					netcanvas.onEnter = function (roomname, cwidth, cheight) {
-						croquis.setCanvasSize(cwidth, cheight);
-						hideJoinRoom();
+					netcanvas.onEnter = function () {
 						resizeElements();
+					}
+					netcanvas.onClose = function () {
+						showReconnect();
+					}
+					netcanvas.onOpen = function () {
+						hideReconnect();
 					}
 				}
 
 				initElements();
 				initNetCanvas();
 				resizeElements();
+				hideReconnect();
 
-
-
-				// joining part
-				function showJoinRoom() {
-					$("#join").show();
-					$("#canvas").hide();
-					$("#toolset_toggle").hide();
-					$("#toolset").hide();
-					$("#navbar").hide();
-				}
-
-				function hideJoinRoom() {
-					$("#join").hide();
-					$("#canvas").show();
-					$("#toolset_toggle").show();
-				}
-
-				function showDisconnected() {
-					$("#join .disconnected").show();
-				}
-
-				function hideDisconnected() {
-					$("#join .disconnected").hide();
-				}
-
-				$("#createroom").click(function () {
-					var roomname = $("#createroomname").val();
-					var cwidth = $("#canvaswidth").val();
-					var cheight = $("#canvasheight").val();
-					if (roomname == "") {
-						alert("please enter room name");
-						return;
-					}
-					netcanvas.sendData({"cmd":"CREATE", "width":cwidth, "height":cheight, "roomname":roomname});
-				});
-
-				$("#joinroom").click(function () {
-					var roomname = $("#joinroomname").val();
-					if (roomname == "") {
-						alert("please enter room name");
-						return;
-					}
-					netcanvas.sendData({"cmd":"ENTER", "roomname":roomname});
-				});
-
-				$("#reconnect").click(function () {
+				$("#retry").click( function () {
+					hideReconnect();
 					netcanvas.reconnect();
 				});
 
-				hideDisconnected();
-				showJoinRoom();
+				$("#offline").click( function () {
+					hideReconnect();
+				});
+
+				function showReconnect() {
+					$("#reconnect").show();
+				}
+
+				function hideReconnect() {
+					$("#reconnect").hide();
+				}
 			});
 
 		</script>
 	</head>
 	<body>
-		<!-- joining -->
-		<div id="join">
-			<div class="createroom">
-				<h3>방 만들기</h3>
-				<span>방 제목</span>
-				<input id="createroomname" type="input" value="">
-				<br>
-				<span>캔버스 가로 크기 (px)</span>
-				<input id="canvaswidth" type="input" value="640">
-				<br>
-				<span>캔버스 세로 크기 (px)</span>
-				<input id="canvasheight" type="input" value="480">
-				<br>
-				<input id="createroom" type="button" value="만들기">
-			</div>
-			<div class="joinroom">
-				<h3>방 들어가기</h3>
-				<span>방 제목</span>
-				<input id="joinroomname" type="input" value="">
-				<br>
-				<input id="joinroom" type="button" value="들어가기">
-			</div>
-			<div class="disconnected">
-				<a href="#" id="reconnect">연결이 끊어졌습니다. 다시 연결하려면 누르세요.<br>(작업하던 내역은 사라지지 않습니다)</a>
-			</div>
+		<!-- informing reconnect -->
+		<div id="reconnect">
+			서버와 연결이 끊겼습니다. <a href="#" id="retry">여기</a>를 터치하면 다시 연결을 재시도합니다.<br>
+			오프라인 상태에서 작업하시려면 <a href="#" id="offline">여기</a>를 클릭하십시오.
 		</div>
 
 		<!-- drawing -->
