@@ -107,9 +107,12 @@ def main():
 	app = web.Application([
 		(r'/', IndexHandler),
 		(r'/ws', SocketHandler),
-		(r'/(croquis.js)', web.StaticFileHandler, {'path': './'}),
-		(r'/(croquis.mobile.js)', web.StaticFileHandler, {'path': './'}),
+		(r'/(netcanvas.htm)', web.StaticFileHandler, {'path': './'}),
+		(r'/(jquery-2.1.0.min.js)', web.StaticFileHandler, {'path': './'}),
 		(r'/(netcanvas.js)', web.StaticFileHandler, {'path': './'}),
+		(r'/img/(.*)', web.StaticFileHandler, {'path': './img/'}),
+		(r'/brushes/(.*)', web.StaticFileHandler, {'path': './brushes/'}),
+		(r'/croquis.js/extension/(.*)', web.StaticFileHandler, {'path': './croquis.js/extension/'}),
 #		(r'/(favicon.ico)', web.StaticFileHandler, {'path': '../'}),
 #		(r'/(rest_api_example.png)', web.StaticFileHandler, {'path': './'}),
 	])
