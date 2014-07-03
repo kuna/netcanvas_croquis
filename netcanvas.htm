@@ -72,6 +72,10 @@
 			#layerlist li .thumbnail { display: inline-block; vertical-align: middle; width:40px; height:40px; }
 			#layerlist li .remove { float:right; font-weight:bold; color:red; }
 			#layerlist li.selected { font-weight:bold; }
+
+
+			#join .container { font-size:12px; box-shadow: 0 2px 4px 2px rgba(0, 0, 0, 0.4); background-color: #fff; padding:10px 20px; width:400px; margin:120px auto;}
+			#join .container .room { border-bottom:1px solid #ccc; padding-bottom: 10px; margin-bottom: 10px; }
 		</style>
 
 		<script>
@@ -394,7 +398,13 @@
 				});
 
 				$("#reconnect").click(function () {
+					hideDisconnected();
 					netcanvas.reconnect();
+				});
+
+				$("#offline").click(function () {
+					netcanvas.reconnect();
+					hideJoinRoom();
 				});
 
 				hideDisconnected();
@@ -406,28 +416,36 @@
 	<body>
 		<!-- joining -->
 		<div id="join">
-			<div class="createroom">
-				<h3>방 만들기</h3>
-				<span>방 제목</span>
-				<input id="createroomname" type="input" value="">
-				<br>
-				<span>캔버스 가로 크기 (px)</span>
-				<input id="canvaswidth" type="input" value="640">
-				<br>
-				<span>캔버스 세로 크기 (px)</span>
-				<input id="canvasheight" type="input" value="480">
-				<br>
-				<input id="createroom" type="button" value="만들기">
-			</div>
-			<div class="joinroom">
-				<h3>방 들어가기</h3>
-				<span>방 제목</span>
-				<input id="joinroomname" type="input" value="">
-				<br>
-				<input id="joinroom" type="button" value="들어가기">
-			</div>
-			<div class="disconnected">
-				<a href="#" id="reconnect">연결이 끊어졌습니다. 다시 연결하려면 누르세요.<br>(작업하던 내역은 사라지지 않습니다)</a>
+			<div class="container">
+				<div class="room">
+					<center><h1>NetCanvas with Croquis</h1></center>
+				</div>
+				<div class="room">
+					<h3>방 만들기</h3>
+					<span>방 제목</span>
+					<input id="createroomname" type="input" value="">
+					<br>
+					<span>캔버스 가로 크기 (px)</span>
+					<input id="canvaswidth" type="input" value="640">
+					<br>
+					<span>캔버스 세로 크기 (px)</span>
+					<input id="canvasheight" type="input" value="480">
+					<br>
+					<input id="createroom" type="button" value="만들기">
+				</div>
+				<div class="room">
+					<h3>방 들어가기</h3>
+					<span>방 제목</span>
+					<input id="joinroomname" type="input" value="">
+					<br>
+					<input id="joinroom" type="button" value="들어가기">
+				</div>
+				<div class="disconnected">
+					<ul>
+						<li><a href="#" id="reconnect">연결이 끊어졌습니다. 다시 연결하려면 누르세요.<br>(작업하던 내역은 사라지지 않습니다)</a></li>
+						<li><a href="#" id="offline">오프라인으로 작업하려면 여기를 클릭하세요.</a></li>
+					</ul>
+				</div>
 			</div>
 		</div>
 
