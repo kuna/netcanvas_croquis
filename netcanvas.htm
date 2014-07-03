@@ -12,6 +12,8 @@
 		<script src="./croquis.js/extension/croquis.move.js"></script>
 		<script src="./croquis.js/extension/croquis.colorpicker.js"></script>
 		<script src="./croquis.js/extension/croquis.shortcutkey.js"></script>
+		<script src="./croquis.js/extension/croquis.brushimage.js"></script>
+		<script src="./croquis.js/extension/croquis.layer.js"></script>
 
 		<script src="./netcanvas.js"></script>
 
@@ -21,6 +23,9 @@
 				background-color:#999;
 				font-family: NanumGothic, 'Nanum Gothic', sans-serif;
 			}
+
+			/* join */
+			#join { position:absolute; background-color:#999; }
 
 			/* croquis part */
 			#croquis_container {
@@ -49,36 +54,92 @@
 
 			/* navbar part */
 			#navbar { position:absolute; }
-			#navbar div { clear:both; display:block; margin-bottom:20px; width:200px; box-shadow: 0 2px 4px 2px rgba(0, 0, 0, 0.4); background-color:#fff; overflow:hidden; padding-bottom:10px; }
+			#navbar .widget { clear:both; display:block; margin-bottom:20px; width:200px; box-shadow: 0 2px 4px 2px rgba(0, 0, 0, 0.4); background-color:#fff; overflow:hidden; padding-bottom:10px; }
 			#navbar h3 { margin:0; padding-left:10px; height:40px; line-height:40px; border-bottom:1px solid #e6e6e6; font-size:18px; font-weight:normal; color:#333; cursor:default; }
 			#navbar h4 { margin:10px; font-size:12px; font-weight:normal; color:#333;  cursor:default; }
 			#navbar p { color: #b3b3b3; margin:10px; font-size:11px; cursor:default; }
 			#navbar .close { display:block; width:26px; height:22px; margin-top:-30px; margin-bottom:18px; margin-left:166px; border-left: 1px solid #999; background: url(./img/close.png) no-repeat top right; background-size: 22px 22px; cursor:hand; opacity:0.5; }
 			#navbar .close:hover { opacity:1; }
+
+
+			#brushimage { margin:0; padding:0; clear:both; overflow:hidden; }
+			#brushimage li { cursor:hand; float:left; display:block; width:36px; height:36px; border:1px solid #ccc; }
+			#brushimage img { display:block; width: 16px; height:16px; margin:10px; }
+
+
+			#layerlist { margin:0; padding:0; clear:both; }
+			#layerlist li { cursor:move; clear:both; height:40px; border-bottom:1px solid #ccc; font-size:12px; }
+			#layerlist li .thumbnail { display: inline-block; vertical-align: middle; width:40px; height:40px; }
+			#layerlist li .remove { float:right; font-weight:bold; color:red; }
+			#layerlist li.selected { font-weight:bold; }
 		</style>
 
 		<script>
 			$(document).ready(function () {
 				// croquis part
 				var croquis = new Croquis();
-				croquis.setCanvasSize(600, 480);
-				croquis.addLayer();
-
 				Croquis.addToElement(croquis, document.getElementById("canvas"));
 
-				Croquis.moveNavigator(croquis, document.getElementById("navigator"), 300, 200);
+				Croquis.moveNavigator(croquis, document.getElementById("navigator"), 200, 200);
 
 				Croquis.ShortcutKey(croquis);
+
+				Croquis.BrushImage(croquis,
+					[null, "./brushes/1.png", "./brushes/2.png", "./brushes/3.png", "./brushes/4.png", "./brushes/5.png"],
+					document.getElementById("brushimage"));
 
 				Croquis.ColorPicker(croquis, 200, 200,
 					document.getElementById("colorpicker"),
 					document.getElementById("colorpicker-hue-slider"),
 					document.getElementById("colorpicker-alpha-slider"));
 
+				Croquis.Layer(croquis, document.getElementById("layerlist"));	// must called immediately after croquis created
+
+
+				croquis.setCanvasSize(600, 480);
+				croquis.addLayer();
+
+
+				var eraserData = {};
+				var brushData = {};
 				function initElements() {
-					//$("#navbar").hide();
+					var brush = croquis.getTool();
+					eraserData.size = brushData.size = brush.getSize();
+					eraserData.flow = brushData.flow = brush.getFlow();
+					eraserData.spacing = brushData.spacing = brush.getSpacing();
+
+					$("#navbar").hide();
 					$("#toolset").hide();
 
+					// widget calling
+					function callWidget(element) {
+						// hide all widget
+						$("#navbar div.widget").hide();
+
+						// show only element
+						element.show();
+
+						// show navbar
+						$("#navbar").show();
+					}
+					// toolset/widget init
+					function changeMode(brushmode) {
+						if (brushmode == true) {
+							croquis.setPaintingKnockout(false);
+							var brush = croquis.getTool();
+							brush.setSize(brushData.size);
+							brush.setFlow(brushData.flow);
+							brush.setSpacing(brushData.spacing);
+							croquis.setTool(brush);
+						} else {
+							croquis.setPaintingKnockout(true);
+							var brush = croquis.getTool();
+							brush.setSize(eraserData.size);
+							brush.setFlow(eraserData.flow);
+							brush.setSpacing(eraserData.spacing);
+							croquis.setTool(brush);
+						}
+					}
 					$("#toolset_toggle").click(function() {
 						$("#toolset").toggle();
 					});
@@ -88,14 +149,110 @@
 					$("#toolset_redo").click(function() {
 						croquis.redo();
 					});
+					$("#toolset_erase").click(function() {
+						changeMode(false);
+						callWidget($("#navbar_eraser"));
+					});
+					$("#toolset_brush").click(function() {
+						changeMode(true);
+						callWidget($("#navbar_brush"));
+					});
+					$("#toolset_hand").click(function() {
+						callWidget($("#navbar_stabilizer"));
+					});
+					$("#toolset_color").click(function() {
+						changeMode(true);
+						callWidget($("#navbar_color"));
+					});
+					$("#toolset_layer").click(function() {
+						callWidget($("#navbar_layer"));
+					});
+					$("#toolset_zoom").click(function() {
+						callWidget($("#navbar_zoom"));
+					});
+					$("#toolset_chat").click(function() {
+						callWidget($("#navbar_chat"));
+					});
 					$("span.close").click(function() {
 						$("#navbar").hide();
+					});
+
+
+					// button init
+					$("#addlayer").click(function() {
+						croquis.addLayer();
+					});
+
+
+					// range init
+					$("#tool-stabilize-level-slider").val(croquis.getToolStabilizeLevel());
+    				$('#tool-stabilize-weight-slider').val(croquis.getToolStabilizeWeight() * 100);
+				    $('#brush-size-slider').val(brushData.size);
+				    $('#brush-flow-slider').val(brushData.flow * 100);
+				    $('#brush-spacing-slider').val(brushData.spacing * 100);
+				    $('#eraser-size-slider').val(eraserData.size);
+				    $('#eraser-flow-slider').val(eraserData.flow * 100);
+				    $('#eraser-spacing-slider').val(eraserData.spacing * 100);
+				    $('#zoom-slider').val(croquis.getScale() * 100);
+
+					$('#tool-stabilize-level-slider').change(function () {
+						croquis.setToolStabilizeLevel(this.value);
+					});
+					$('#tool-stabilize-weight-slider').change(function () {
+						croquis.setToolStabilizeWeight(this.value * 0.01);
+					});
+				    $('#brush-size-slider').change(function () {
+				    	brushData.size = this.value;
+				    	var brush = croquis.getTool();
+						brush.setSize(this.value);
+						croquis.setTool(brush);
+					});
+				    $('#brush-flow-slider').change(function () {
+				    	brushData.flow = this.value;
+				    	var brush = croquis.getTool();
+						brush.setFlow(this.value * 0.01);
+						croquis.setTool(brush);
+					});
+				    $('#brush-spacing-slider').change(function () {
+				    	brushData.spacing = this.value;
+				    	var brush = croquis.getTool();
+						brush.setSpacing(this.value * 0.01);
+						croquis.setTool(brush);
+					});
+				    $('#eraser-size-slider').change(function () {
+				    	eraserData.size = this.value;
+				    	var brush = croquis.getTool();
+						brush.setSize(this.value);
+						croquis.setTool(brush);
+					});
+				    $('#eraser-flow-slider').change(function () {
+				    	eraserData.flow = this.value;
+				    	var brush = croquis.getTool();
+						brush.setFlow(this.value * 0.01);
+						croquis.setTool(brush);
+					});
+				    $('#eraser-spacing-slider').change(function () {
+				    	eraserData.spacing = this.value;
+				    	var brush = croquis.getTool();
+						brush.setSpacing(this.value * 0.01);
+						croquis.setTool(brush);
+					});
+				    $('#zoom-slider').change(function () {
+				    	croquis.setScaleCentered(this.value * 0.01);
+					});
+					$('#zoom-original').click(function() {
+						croquis.setScaleCentered(1);
+						$('#zoom-slider').val(100);
 					});
 				}
 				function resizeElements() {
 					var margin = {w: 80, h:80};
 					var wWidth = $( window ).width();
 					var wHeight = $( window ).height();
+
+					// fill
+					$("#join").width(wWidth);
+					$("#join").height(wHeight);
 
 					// croquis replace
 					$("#croquis_container").css({left: margin.w/2, top:margin.h/2});
@@ -112,16 +269,169 @@
 				$(window).resize(function() {
 					resizeElements();
 				});
+
+
+				var netcanvas;
+				function initNetCanvas() {
+					netcanvas = new NetCanvas("ws://localhost:8800/ws", croquis);
+					//netcanvas = new NetCanvas("ws://192.168.0.32:8800/ws", croquis);
+
+
+					// add event handler for element
+					function addTextarea(txt) {
+						$("#chat").text($("#chat").text() + "\n" + txt);
+					}
+					function addChat(nick, msg, self) {
+						if (self == true) {
+							addTextarea("[" + nick + "] " + msg);
+						} else {
+							addTextarea("<" + nick + "> " + msg);
+						}
+					}
+					function enterChat(msg) {
+						netcanvas.sendData({"cmd":"CHAT", "msg":msg});
+						addChat("Me", msg, true);
+					}
+					$("#chatinput").bind('keypress', function(e) {
+						if(e.keyCode==13){
+							if (this.value != "")
+								enterChat(this.value);
+							this.value = "";
+						}
+					});
+					$("#chatenter").click(function() {
+						var txt = $("#chatinput").val();
+						if (txt != "")
+							enterChat(txt);
+						$("#chatinput").val("");
+					});
+					$("#chatnickchange").click(function() {
+						var nick = prompt("enter new nickname");
+						if (nick != "") {
+							netcanvas.sendData({"cmd":"NICK", "nick":nick});
+						}
+					});
+
+
+					// add event handler for netcanvas
+					netcanvas.onChat = function (nick, msg) {
+						addChat(nick, msg);
+					}
+					netcanvas.onMessage = function (msg) {
+						//addChat("Server", msg, true);
+						alert(msg);
+					}
+					netcanvas.onJoin = function (id) {
+						addTextarea(id + " had entered.");
+					}
+					netcanvas.onNick = function (id, nick) {
+						addTextarea(id + " set nickname " + nick);
+					}
+					netcanvas.onQuit = function (nick) {
+						addChat("Server", nick + " had exit.", true);
+					}
+					netcanvas.onClose = function (nick) {
+						showJoinRoom();
+						showDisconnected();
+					}
+					netcanvas.onOpen = function (nick) {
+						hideDisconnected();
+					}
+					netcanvas.onEnter = function (roomname, cwidth, cheight) {
+						croquis.setCanvasSize(cwidth, cheight);
+						hideJoinRoom();
+						resizeElements();
+					}
+				}
+
 				initElements();
+				initNetCanvas();
 				resizeElements();
 
-				//netcanvas = new NetCanvas("ws://localhost:8800/ws", croquis);
-				//netcanvas = new NetCanvas("ws://192.168.0.32:8800/ws", croquis);
+
+
+				// joining part
+				function showJoinRoom() {
+					$("#join").show();
+					$("#canvas").hide();
+					$("#toolset_toggle").hide();
+					$("#toolset").hide();
+					$("#navbar").hide();
+				}
+
+				function hideJoinRoom() {
+					$("#join").hide();
+					$("#canvas").show();
+					$("#toolset_toggle").show();
+				}
+
+				function showDisconnected() {
+					$("#join .disconnected").show();
+				}
+
+				function hideDisconnected() {
+					$("#join .disconnected").hide();
+				}
+
+				$("#createroom").click(function () {
+					var roomname = $("#createroomname").val();
+					var cwidth = $("#canvaswidth").val();
+					var cheight = $("#canvasheight").val();
+					if (roomname == "") {
+						alert("please enter room name");
+						return;
+					}
+					netcanvas.sendData({"cmd":"CREATE", "width":cwidth, "height":cheight, "roomname":roomname});
+				});
+
+				$("#joinroom").click(function () {
+					var roomname = $("#joinroomname").val();
+					if (roomname == "") {
+						alert("please enter room name");
+						return;
+					}
+					netcanvas.sendData({"cmd":"ENTER", "roomname":roomname});
+				});
+
+				$("#reconnect").click(function () {
+					netcanvas.reconnect();
+				});
+
+				hideDisconnected();
+				showJoinRoom();
 			});
 
 		</script>
 	</head>
 	<body>
+		<!-- joining -->
+		<div id="join">
+			<div class="createroom">
+				<h3>방 만들기</h3>
+				<span>방 제목</span>
+				<input id="createroomname" type="input" value="">
+				<br>
+				<span>캔버스 가로 크기 (px)</span>
+				<input id="canvaswidth" type="input" value="640">
+				<br>
+				<span>캔버스 세로 크기 (px)</span>
+				<input id="canvasheight" type="input" value="480">
+				<br>
+				<input id="createroom" type="button" value="만들기">
+			</div>
+			<div class="joinroom">
+				<h3>방 들어가기</h3>
+				<span>방 제목</span>
+				<input id="joinroomname" type="input" value="">
+				<br>
+				<input id="joinroom" type="button" value="들어가기">
+			</div>
+			<div class="disconnected">
+				<a href="#" id="reconnect">연결이 끊어졌습니다. 다시 연결하려면 누르세요.<br>(작업하던 내역은 사라지지 않습니다)</a>
+			</div>
+		</div>
+
+		<!-- drawing -->
 		<div id="canvas"></div>
 		<div id="toolset">
 			<ul>
@@ -138,13 +448,44 @@
 		</div>
 		<div id="toolset_toggle"></div>
 		<div id="navbar">
-			<div id="navbar_brush">
-				<h3>제목</h3>
+			<div class="widget" id="navbar_eraser">
+				<h3>지우개</h3>
 				<span class="close"></span>
-				<h4>단계</h4>
-				<p>손떨림!</p>
+				<h4>크기</h4>
+       			<input id="eraser-size-slider" type="range" min="1" max="100">
+				<h4>흐름</h4>
+       			<input id="eraser-flow-slider" type="range" min="1" max="100">
+				<h4>간격</h4>
+       			<input id="eraser-spacing-slider" type="range" min="1" max="100">
 			</div>
-			<div id="navbar_color">
+			<div class="widget" id="navbar_brush">
+				<h3>브러시</h3>
+				<span class="close"></span>
+				<ul id="brushimage"></ul>
+				<h4>크기</h4>
+       			<input id="brush-size-slider" type="range" min="1" max="100">
+				<h4>흐름</h4>
+       			<input id="brush-flow-slider" type="range" min="1" max="100">
+				<h4>간격</h4>
+       			<input id="brush-spacing-slider" type="range" min="1" max="100">
+			</div>
+			<div class="widget" id="navbar_stabilizer">
+				<h3>손떨림 보정</h3>
+				<span class="close"></span>
+		        <h4>단계</h4>
+		        <input id="tool-stabilize-level-slider" type="range" min="3" max="20">
+		        <h4>무게</h4>
+		        <input id="tool-stabilize-weight-slider" type="range" min="20" max="80">
+				<p>손떨림 보정 단계를 높일 수록 선이 부드러워지고,
+무게를 높일 수록 천천히 그려집니다.</p>
+			</div>
+			<div class="widget" id="navbar_layer">
+				<h3>레이어</h3>
+				<span class="close"></span>
+				<ul id="layerlist"></ul>
+				<input id="addlayer" type="button" value="add new layer">
+			</div>
+			<div class="widget" id="navbar_color">
 				<h3>색</h3>
 				<span class="close"></span>
 				<div id="colorpicker"></div>
@@ -153,13 +494,22 @@
 				<h4>투명도</h4>
 				<input id="colorpicker-alpha-slider" type="range" min="0" max="100" value="100">
 			</div>
-			<div id="navbar_zoom">
-				<h3>제목</h3>
+			<div class="widget" id="navbar_zoom">
+				<h3>네비게이터</h3>
 				<span class="close"></span>
 				<div id="navigator"></div>
 				<h4>배율</h4>
-				<input id="zoom" type="range" min="40" max="300" value="100">
-				<h4><a href='#'>원래대로</a></h4>
+				<input id="zoom-slider" type="range" min="40" max="300" value="100">
+				<h4><a href='#' id='zoom-original'>원래대로</a></h4>
+			</div>
+			<div class="widget" id="navbar_chat">
+				<h3>채팅창</h3>
+				<span class="close"></span>
+				<textarea disabled id="chat" cols="20" rows="10"></textarea>
+				<input id="chatinput" type="text">
+				<br>
+				<input id="chatenter" type="button" value="chat">
+				<input id="chatnickchange" type="button" value="nick change">
 			</div>
 		</div>
 	</body>
