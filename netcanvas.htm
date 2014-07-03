@@ -1,25 +1,166 @@
 <html>
 	<head>
-		<title>croquis for mobile/netcanvas test</title>
+		<title>netcanvas for crossplatform</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, width=device-width" />
+		<script src="./jquery-2.1.0.min.js"></script>
+		<script src="./croquis.js/extension/HSBRect/HSBRect.js"></script>
+		<script src="./croquis.js/extension/TinyColor/tinycolor.js"></script>
+
 		<script src="./croquis.js/extension/croquis.js"></script>
 		<script src="./croquis.js/extension/croquis.mobile.js"></script>
+		<script src="./croquis.js/extension/croquis.move.js"></script>
+		<script src="./croquis.js/extension/croquis.colorpicker.js"></script>
+		<script src="./croquis.js/extension/croquis.shortcutkey.js"></script>
+
 		<script src="./netcanvas.js"></script>
+
+		<style>
+			body {
+				margin:0; padding:0;
+				background-color:#999;
+				font-family: NanumGothic, 'Nanum Gothic', sans-serif;
+			}
+
+			/* croquis part */
+			#croquis_container {
+				background-color: #ccc;
+				box-shadow: 0 2px 4px 2px rgba(0, 0, 0, 0.4);
+			}
+			#croquis_element { background-color: #fff; }
+
+			/* toolset part */
+			#toolset_toggle { position:absolute; display:block; background: url(./img/more.png) repeat-x; background-size: 100% 100%; cursor:hand; width:60px; height: 60px; opacity:0.5; }
+			#toolset_toggle:hover { opacity:1; }
+			#toolset { position:absolute; background: url(./img/bg_bottom.png) repeat-x; background-size: 100% 100%; }
+			#toolset ul { margin:0; padding:0; margin-top:5px; }
+			#toolset li { display:block; width:60px; height:60px; cursor:hand; float:left; opacity:0.5; background-size: 100% 100%; }
+			#toolset li:hover { opacity:1; }
+
+			#toolset_undo { background: url(./img/undo.png) no-repeat; }
+			#toolset_redo { background: url(./img/redo.png) no-repeat; }
+			#toolset_erase { background: url(./img/eraser.png) no-repeat; }
+			#toolset_brush { background: url(./img/brush.png) no-repeat; }
+			#toolset_hand { background: url(./img/hand.png) no-repeat; }
+			#toolset_color { background: url(./img/color.png) no-repeat; }
+			#toolset_layer { background: url(./img/layers.png) no-repeat; }
+			#toolset_zoom { background: url(./img/zoom.png) no-repeat; }
+			#toolset_chat { background: url(./img/chat.png) no-repeat; }
+
+			/* navbar part */
+			#navbar { position:absolute; }
+			#navbar div { clear:both; display:block; margin-bottom:20px; width:200px; box-shadow: 0 2px 4px 2px rgba(0, 0, 0, 0.4); background-color:#fff; overflow:hidden; padding-bottom:10px; }
+			#navbar h3 { margin:0; padding-left:10px; height:40px; line-height:40px; border-bottom:1px solid #e6e6e6; font-size:18px; font-weight:normal; color:#333; cursor:default; }
+			#navbar h4 { margin:10px; font-size:12px; font-weight:normal; color:#333;  cursor:default; }
+			#navbar p { color: #b3b3b3; margin:10px; font-size:11px; cursor:default; }
+			#navbar .close { display:block; width:26px; height:22px; margin-top:-30px; margin-bottom:18px; margin-left:166px; border-left: 1px solid #999; background: url(./img/close.png) no-repeat top right; background-size: 22px 22px; cursor:hand; opacity:0.5; }
+			#navbar .close:hover { opacity:1; }
+		</style>
+
 		<script>
-			window.onload = function () {
+			$(document).ready(function () {
+				// croquis part
 				var croquis = new Croquis();
 				croquis.setCanvasSize(600, 480);
 				croquis.addLayer();
-				//croquis.fillLayer('#abc');
 
-				Croquis.addToElement(croquis, document.body);
+				Croquis.addToElement(croquis, document.getElementById("canvas"));
 
-				netcanvas = new NetCanvas("ws://localhost:8800/ws", croquis);
+				Croquis.moveNavigator(croquis, document.getElementById("navigator"), 300, 200);
+
+				Croquis.ShortcutKey(croquis);
+
+				Croquis.ColorPicker(croquis, 200, 200,
+					document.getElementById("colorpicker"),
+					document.getElementById("colorpicker-hue-slider"),
+					document.getElementById("colorpicker-alpha-slider"));
+
+				function initElements() {
+					//$("#navbar").hide();
+					$("#toolset").hide();
+
+					$("#toolset_toggle").click(function() {
+						$("#toolset").toggle();
+					});
+					$("#toolset_undo").click(function() {
+						croquis.undo();
+					});
+					$("#toolset_redo").click(function() {
+						croquis.redo();
+					});
+					$("span.close").click(function() {
+						$("#navbar").hide();
+					});
+				}
+				function resizeElements() {
+					var margin = {w: 80, h:80};
+					var wWidth = $( window ).width();
+					var wHeight = $( window ).height();
+
+					// croquis replace
+					$("#croquis_container").css({left: margin.w/2, top:margin.h/2});
+					croquis.setContainerSizeCentered(wWidth-margin.w, wHeight-margin.h);
+
+					// toolset replace
+					$("#toolset").css({right: margin.w/2, bottom:margin.h/2, width: wWidth-margin.w})
+					$("#toolset_toggle").css({right: margin.w/2, bottom:margin.h/2})
+
+					// navbar replace
+					$("#navbar").css({right:margin.w/2, top:margin.h/2});
+				}
+
+				$(window).resize(function() {
+					resizeElements();
+				});
+				initElements();
+				resizeElements();
+
+				//netcanvas = new NetCanvas("ws://localhost:8800/ws", croquis);
 				//netcanvas = new NetCanvas("ws://192.168.0.32:8800/ws", croquis);
-			}
+			});
+
 		</script>
 	</head>
 	<body>
+		<div id="canvas"></div>
+		<div id="toolset">
+			<ul>
+				<li id="toolset_undo"></li>
+				<li id="toolset_redo"></li>
+				<li id="toolset_erase"></li>
+				<li id="toolset_brush"></li>
+				<li id="toolset_hand"></li>
+				<li id="toolset_color"></li>
+				<li id="toolset_layer"></li>
+				<li id="toolset_zoom"></li>
+				<li id="toolset_chat"></li>
+			</ul>
+		</div>
+		<div id="toolset_toggle"></div>
+		<div id="navbar">
+			<div id="navbar_brush">
+				<h3>제목</h3>
+				<span class="close"></span>
+				<h4>단계</h4>
+				<p>손떨림!</p>
+			</div>
+			<div id="navbar_color">
+				<h3>색</h3>
+				<span class="close"></span>
+				<div id="colorpicker"></div>
+				<h4>색조</h4>
+				<input id="colorpicker-hue-slider" type="range" min="0" max="360">
+				<h4>투명도</h4>
+				<input id="colorpicker-alpha-slider" type="range" min="0" max="100" value="100">
+			</div>
+			<div id="navbar_zoom">
+				<h3>제목</h3>
+				<span class="close"></span>
+				<div id="navigator"></div>
+				<h4>배율</h4>
+				<input id="zoom" type="range" min="40" max="300" value="100">
+				<h4><a href='#'>원래대로</a></h4>
+			</div>
+		</div>
 	</body>
 </html>
