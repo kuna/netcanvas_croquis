@@ -14,6 +14,7 @@
 		<script src="./croquis.js/extension/croquis.shortcutkey.js"></script>
 		<script src="./croquis.js/extension/croquis.brushimage.js"></script>
 		<script src="./croquis.js/extension/croquis.layer.js"></script>
+		<script src="./croquis.js/extension/croquis.brushpointer.js"></script>
 
 		<script src="./netcanvas.js"></script>
 
@@ -95,9 +96,13 @@
 				Croquis.ColorPicker(croquis, 200, 200,
 					document.getElementById("colorpicker"),
 					document.getElementById("colorpicker-hue-slider"),
-					document.getElementById("colorpicker-alpha-slider"));
+					document.getElementById("colorpicker-alpha-slider"),
+					function() {brushpointer.updatePointer(brush);});
 
 				Croquis.Layer(croquis, document.getElementById("layerlist"));	// must called immediately after croquis created
+
+				brushpointer = new Croquis.BrushPointer(croquis);
+				brushpointer.updatePointer(croquis.getTool());
 
 
 				croquis.setCanvasSize(600, 480);
@@ -189,6 +194,8 @@
 
 
 					// range init
+					croquis.setToolStabilizeLevel(10);
+					croquis.setToolStabilizeWeight(40 * 0.01);
 					$("#tool-stabilize-level-slider").val(croquis.getToolStabilizeLevel());
     				$('#tool-stabilize-weight-slider').val(croquis.getToolStabilizeWeight() * 100);
 				    $('#brush-size-slider').val(brushData.size);
@@ -209,6 +216,7 @@
 				    	brushData.size = this.value;
 				    	var brush = croquis.getTool();
 						brush.setSize(this.value);
+						brushpointer.updatePointer(brush);
 						croquis.setTool(brush);
 					});
 				    $('#brush-flow-slider').change(function () {
@@ -260,7 +268,7 @@
 
 					// croquis replace
 					$("#croquis_container").css({left: margin.w/2, top:margin.h/2});
-					croquis.setContainerSizeCentered(wWidth-margin.w, wHeight-margin.h);
+					croquis.setContainerSize(wWidth-margin.w, wHeight-margin.h);
 
 					// toolset replace
 					$("#toolset").css({right: margin.w/2, bottom:margin.h/2, width: wWidth-margin.w})

@@ -11,6 +11,12 @@ it's platform free! you can draw with Android, iOS, Windows, Mac, Linux, and so 
 you may can refer more simple version of netcanvas in simpleroom branch.
 
 
+TODO
+---------------------
+- wrong point when zooms
+- brushpointer needs reflecting canvas scale
+
+
 claims
 ---------------------
 
