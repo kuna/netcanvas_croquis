@@ -24,7 +24,10 @@ var NetCanvas = function(url, croquis, prototype) {
 			// add canvas onchange handler
 			self.croquis.addEventListener('onchanged', self.onchange);
 
-			console.log("Websocket connected");
+			// should remove all overlay layer in case of reconnecting
+			self.croquis.removeOverlayLayer();
+
+			console.log("Websocket connect started");
 		} else {
 			console.log("this broswer doesnt support Websocket");
 		}
