@@ -11,6 +11,16 @@ var NetCanvas = function(url, croquis, prototype) {
 	self.croquis = croquis;
 	self.nick = {};
 	self.isconnected = false;
+	self.latency = 5000;
+	var lastSendTime = 0;
+	var ishasSenddata = false;
+	var isSending = false;
+	if (prototype != null) {
+		for (var p in prototype) {
+			self[p] = prototype[p];
+		}
+	}
+
 	self.reconnect = function () {
 		if ('WebSocket' in window) {
 			self.wSocket = new WebSocket(url);
@@ -33,11 +43,13 @@ var NetCanvas = function(url, croquis, prototype) {
 		}
 	}
 
-	if (prototype != null) {
-		for (var p in prototype) {
-			self[p] = prototype[p];
-		}
-	}
+	self.getLatency = function () {
+		return self.latency;
+	};
+
+	self.setLatency = function (l) {
+		self.latency = l;
+	};
 
 	function isNickExists(nick) {
 		for (var id in self.nick) {
@@ -137,10 +149,35 @@ var NetCanvas = function(url, croquis, prototype) {
 			self.onClose();
 	};
 
-	self.onchange = function(e) {
+	function sendImage() {
+		if (isSending) return;
+
+		// check latency
+		var ntime = new Date().getTime();
+		if (ntime - self.lastSendTime < self.latency) {
+			console.log("wont send data under latency");
+			if (!ishasSenddata) {
+				setTimeout(sendImageDelayed, self.latency - (ntime - self.lastSendTime));
+				ishasSenddata = true;
+			}
+			return;
+		}
+
 		var canvas = self.croquis.createFlattenThumbnail();
 		var data = canvas.toDataURL();	// PNG
+		isSending = true;
 		self.sendData({"cmd":"IMG", "data":data});
+		isSending = false;
+		ishasSenddata = false;
+		self.lastSendTime = ntime;
+	}
+	function sendImageDelayed() {
+		if (ishasSenddata) {
+			sendImage();
+		}
+	}
+	self.onchange = function(e) {
+		sendImage();
 	};
 
 	self.reconnect();
