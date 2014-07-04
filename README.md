@@ -7,3 +7,8 @@ dependency
 * tornado (python server)
 
 it's platform free! you can draw with Android, iOS, Windows, Mac, Linux, and so on!
+
+
+claims
+---------------------
+much source from croquispop, thx to @disjukr.

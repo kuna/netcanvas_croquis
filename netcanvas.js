@@ -135,7 +135,7 @@ var NetCanvas = function(url, croquis, prototype) {
 	};
 
 	self.onchange = function(e) {
-		var canvas = self.croquis.getLayerCanvas(0);
+		var canvas = self.croquis.createFlattenThumbnail();
 		var data = canvas.toDataURL();	// PNG
 		self.sendData({"cmd":"IMG", "data":data});
 	};
