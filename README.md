@@ -13,7 +13,6 @@ you may can refer more simple version of netcanvas in simpleroom branch.
 
 TODO
 ---------------------
-- wrong point when zooms
 - brushpointer needs reflecting canvas scale
 
 
